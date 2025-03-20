@@ -7,6 +7,7 @@ const mongoose = require('mongoose'); // Import Mongoose
 const connectDB = require('./config/db'); // Import MongoDB connection function
 const logger = require('./utils/logger'); // Import centralized logger.js
 const morgan = require('morgan');
+const { authMiddleware, logout } = require('./middleware/authMiddleware'); // Import Auth Middleware
 
 // Initialize Express server
 const app = express();
@@ -93,3 +94,19 @@ app.post('/api/users/login', async (req, res) => {
         res.status(500).json({ message: 'Server error', error });
     }
 });
+
+// User Profile API (Protected Route)
+app.get('/api/users/profile', authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password'); // remove password
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+});
+
+// User Logout API
+app.post('/api/users/logout', authMiddleware, logout);
