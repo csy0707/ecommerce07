@@ -16,7 +16,8 @@ const UserSchema = new mongoose.Schema({
         type: String, 
         required: true, 
         minlength: [8, 'Password must be at least 8 characters long'], // Minimum password length requirement
-    }
+    },
+    role: { type: String, enum: ['user', 'admin'], default: 'user' } // Added role field
 }, { timestamps: true }); // Automatically adds createdAt & updatedAt fields
 
 // Hash password before saving
@@ -40,6 +41,18 @@ UserSchema.methods.comparePassword = async function(enteredPassword) {
     } catch (err) {
         logger.error(`Error during password comparison for ${this.email}: ${err.message}`);
         return false;
+    }
+};
+
+// Static method to delete all users
+UserSchema.statics.deleteAllUsers = async function() {
+    try {
+        const result = await this.deleteMany({});
+        logger.info(`All users deleted. Count: ${result.deletedCount}`);
+        return result;
+    } catch (err) {
+        logger.error(`Error deleting all users: ${err.message}`);
+        throw err;
     }
 };
 

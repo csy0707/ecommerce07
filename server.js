@@ -8,6 +8,7 @@ const connectDB = require('./config/db'); // Import MongoDB connection function
 const logger = require('./utils/logger'); // Import centralized logger.js
 const morgan = require('morgan');
 const { authMiddleware, logout } = require('./middleware/authMiddleware'); // Import Auth Middleware
+const productRoutes = require('./routes/productRoutes');
 
 // Initialize Express server
 const app = express();
@@ -65,6 +66,29 @@ app.post('/api/users/register', async (req, res) => {
     }
 });
 
+app.post('/api/users/register/admin', authMiddleware, async (req, res) => {
+    try {
+        const { username, email, password, role } = req.body;
+        
+        // Only allow admin to create another admin
+        if (role === 'admin' && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Only admin can create another admin' });
+        }
+
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+
+        const newUser = new User({ username, email, password: password, role });
+        await newUser.save();
+
+        res.status(201).json({ message: 'User registered successfully', user: newUser });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+});
+
 // User Login API
 app.post('/api/users/login', async (req, res) => {
     try {
@@ -85,7 +109,7 @@ app.post('/api/users/login', async (req, res) => {
         }
 
         // Generate JWT token
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ id: user._id, role: user.role}, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         logger.info(`User logged in: ${email}`);
         res.json({ token, user: { id: user._id, username: user.username, email: user.email } });
@@ -110,3 +134,6 @@ app.get('/api/users/profile', authMiddleware, async (req, res) => {
 
 // User Logout API
 app.post('/api/users/logout', authMiddleware, logout);
+
+// Product Routes
+app.use('/api/products', productRoutes);
