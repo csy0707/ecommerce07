@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Get the current script directory
+SCRIPT_DIR=$(dirname "$(realpath "$0")")
+
 # Set variables from command-line arguments or use default values
 SERVER=${1:-"localhost:5010"}
 USER=${2:-"test0707"}
@@ -7,17 +10,12 @@ EMAIL=${3:-"test0707@example.com"}
 PASSWORD=${4:-"password123"}
 
 API_URL="http://$SERVER/api"
-REGISTER_ENDPOINT="/users/register"
 LOGIN_ENDPOINT="/users/login"
 PROFILE_ENDPOINT="/users/profile"
-LOGOUT_ENDPOINT="/users/logout"
 
 # 0️⃣ Test User Registration
 echo "🔹 Testing User Registration..."
-REGISTER_URL="$API_URL$REGISTER_ENDPOINT"
-REGISTER_RESPONSE=$(curl -s -X POST $REGISTER_URL \
--H "Content-Type: application/json" \
--d "{\"username\": \"$USER\", \"email\": \"$EMAIL\", \"password\": \"$PASSWORD\"}")
+REGISTER_RESPONSE=$(bash "$SCRIPT_DIR/../utils/register.sh" "$SERVER" "$USER" "$EMAIL" "$PASSWORD")
 
 REGISTER_SUCCESS=$(echo "$REGISTER_RESPONSE" | jq -r '.message')
 if [[ "$REGISTER_SUCCESS" == "User registered successfully" ]]; then
@@ -46,9 +44,7 @@ curl -X GET $PROFILE_URL \
 -H "Authorization: Bearer $TOKEN"
 
 # 3️⃣ Test logout the user
-LOGOUT_URL="$API_URL$LOGOUT_ENDPOINT"
-LOGOUT_RESPONSE=$(curl -s -X POST $LOGOUT_URL \
--H "Authorization: Bearer $TOKEN")
+LOGOUT_RESPONSE=$(bash "$SCRIPT_DIR/../utils/logout.sh" "$SERVER" "$TOKEN")
 
 LOGOUT_MESSAGE=$(echo "$LOGOUT_RESPONSE" | jq -r '.message')
 if [[ "$LOGOUT_MESSAGE" == "Logged out successfully" ]]; then
