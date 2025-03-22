@@ -9,6 +9,7 @@ const logger = require('./utils/logger'); // Import centralized logger.js
 const morgan = require('morgan');
 const { authMiddleware, logout } = require('./middleware/authMiddleware'); // Import Auth Middleware
 const productRoutes = require('./routes/productRoutes');
+const cartRoutes = require('./routes/cartRoutes');
 
 // Initialize Express server
 const app = express();
@@ -137,3 +138,6 @@ app.post('/api/users/logout', authMiddleware, logout);
 
 // Product Routes
 app.use('/api/products', productRoutes);
+
+// Cart Routes
+app.use('/api/cart', cartRoutes);
