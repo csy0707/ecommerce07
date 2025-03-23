@@ -10,6 +10,7 @@ const morgan = require('morgan');
 const { authMiddleware, logout } = require('./middleware/authMiddleware'); // Import Auth Middleware
 const productRoutes = require('./routes/productRoutes');
 const cartRoutes = require('./routes/cartRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
 
 // Initialize Express server
 const app = express();
@@ -141,3 +142,6 @@ app.use('/api/products', productRoutes);
 
 // Cart Routes
 app.use('/api/cart', cartRoutes);
+
+// Category Routes
+app.use('/api/categories', categoryRoutes);
